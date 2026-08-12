@@ -1,15 +1,22 @@
 // ==UserScript==
-// @name         Automat wider den unequestrisch Geist
-// @namespace    local.scripts
-// @version      1.0
-// @description  Scrape a user's story IDs, then bulk-dislike them via the AJAX endpoint
-// @match        https://www.fimfiction.net/user/*
+// @name        Automat wider den unequestrisch Geist
+// @description Scrape a user's story IDs, then bulk-dislike them via the AJAX endpoint
+// @icon        https://static.fimfiction.net/favicon.ico
+// @version     1.0
+// @author      Gold Meddle
+// @license     MIT
+// @namespace   https://github.com/GoldMeddle/
+// @homepageURL https://github.com/GoldMeddle/AwduG
+// @supportURL  https://github.com/GoldMeddle/AwduG/issues
+// @updateURL   https://github.com/GoldMeddle/AwduG/raw/master/awdug.user.js
+// @downloadURL https://github.com/GoldMeddle/AwduG/raw/master/awdug.user.js
 // @grant        GM_registerMenuCommand
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        unsafeWindow
 // @run-at       document-idle
-// @icon         https://static.fimfiction.net/favicon.ico
+// @match        https://www.fimfiction.net/user/*
+
 // ==/UserScript==
 
 (function () {
