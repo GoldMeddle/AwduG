@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Automat wider den unequestrisch Geist
+// @name         Automat wider den unequestrischen Geist
 // @description  Scrape a user's bibliography, then bulk-dislike it via the AJAX endpoint
 // @icon         https://static.fimfiction.net/favicon.ico
-// @version      1.1
+// @version      1.1.1
 // @author       Gold Meddle
 // @license      MIT
 // @namespace    https://github.com/GoldMeddle/
@@ -97,36 +97,39 @@
     let queue = GM_getValue('storyids_queue', []);
     if (!queue.length) { alert('No story IDs queued: run the scraper first.'); return; }
 
+    const total = queue.length;
+    let index = 0;
+
     for (const storyId of [...queue]) {
+      index++;
       let delay = 5;
 
       while (true) {
-        console.log(timestamp());
-        console.log(`Disliking ${storyId}...`);
+        console.log(`[${index}/${total}] ${timestamp()}: Disliking ${storyId}...`);
 
         let output, parsed;
         try {
           output = await dislikeOne(storyId);
           parsed = JSON.parse(output);
         } catch (e) {
-          console.log(`Error: mangled response, retrying (${e})`);
+          console.log(`[${index}/${total}] Error: mangled response, retrying (${e})`);
           continue;
         }
 
         if (parsed.disliked === true) {
-          console.log(`Success: ${output}`);
+          console.log(`[${index}/${total}] Success: ${output}`);
           break;
         } else if (parsed.error === 'You cannot perform this action any more right now') {
           delay *= 2;
-          console.log(`Error: rate limit hit; waiting ${delay} minutes before retrying`);
+          console.log(`[${index}/${total}] Rate limit hit; waiting ${delay} minutes before retrying`);
           await sleep(delay * 60000)
         } else if (parsed.disliked === false) {
-          console.log('Error: already disliked; reversing reversal');
+          console.log(`[${index}/${total}] Already disliked; reversing reversal`);
         } else if (parsed.error === 'Permissions required for this action were not met') {
-          console.log(`Permission error; skipping ${storyId}`);
+          console.log(`[${index}/${total}] Permission error; skipping ${storyId}`);
           break;
         } else {
-          console.log(`Error: unrecognized response, retrying: ${output}`);
+          console.log(`[${index}/${total}] Unrecognized response, retrying: ${output}`);
         }
       }
 
