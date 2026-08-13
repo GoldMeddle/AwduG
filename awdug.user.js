@@ -1,15 +1,15 @@
 // ==UserScript==
-// @name        Automat wider den unequestrisch Geist
-// @description Scrape a user's story IDs, then bulk-dislike them via the AJAX endpoint
-// @icon        https://static.fimfiction.net/favicon.ico
-// @version     1.0
-// @author      Gold Meddle
-// @license     MIT
-// @namespace   https://github.com/GoldMeddle/
-// @homepageURL https://github.com/GoldMeddle/AwduG
-// @supportURL  https://github.com/GoldMeddle/AwduG/issues
-// @updateURL   https://github.com/GoldMeddle/AwduG/raw/master/awdug.user.js
-// @downloadURL https://github.com/GoldMeddle/AwduG/raw/master/awdug.user.js
+// @name         Automat wider den unequestrisch Geist
+// @description  Scrape a user's bibliography, then bulk-dislike it via the AJAX endpoint
+// @icon         https://static.fimfiction.net/favicon.ico
+// @version      1.1
+// @author       Gold Meddle
+// @license      MIT
+// @namespace    https://github.com/GoldMeddle/
+// @homepageURL  https://github.com/GoldMeddle/AwduG
+// @supportURL   https://github.com/GoldMeddle/AwduG/issues
+// @updateURL    https://github.com/GoldMeddle/AwduG/raw/master/awdug.user.js
+// @downloadURL  https://github.com/GoldMeddle/AwduG/raw/master/awdug.user.js
 // @grant        GM_registerMenuCommand
 // @grant        GM_setValue
 // @grant        GM_getValue
@@ -38,11 +38,12 @@
   }
 
   function extractIds(doc) {
-    return [...doc.querySelectorAll('a.story_name')]
-      .map(a => a.getAttribute('href'))
-      .filter(Boolean)
-      .map(href => (href.match(/\/story\/(\d+)/) || [])[1])
-      .filter(Boolean);
+    return [...doc.querySelectorAll('.rating_container[data-story]')]
+      .filter(el => {
+        const btn = el.querySelector('.dislike_button');
+        return btn && !btn.classList.contains('dislike_button_selected');
+      })
+      .map(el => el.getAttribute('data-story'));
   }
 
   function hasNextPage(doc) {
@@ -51,7 +52,6 @@
 
   async function scrape() {
     const userId = getUserId();
-    if (!userId) { alert('Error: navigate to a /user/<id>/... page first'); return; }
 
     let page = 1;
     let html = await fetchListPage(userId, page);
@@ -66,8 +66,8 @@
     }
 
     GM_setValue('storyids_queue', allIds);
-    console.log(`Scraped ${allIds.length} story IDs across ${page} page(s). Stored for disliking.`);
-    alert(`Scraped ${allIds.length} story IDs. Run "Dislike from list" when ready.`);
+    console.log(`Scraped ${allIds.length} dislikable story IDs across ${page} page(s). Stored for disliking.`);
+    alert(`Scraped ${allIds.length} dislikable story IDs. Run "Dislike from list" when ready.`);
   }
 
   // ---------- Disliker ----------
@@ -98,7 +98,7 @@
     if (!queue.length) { alert('No story IDs queued: run the scraper first.'); return; }
 
     for (const storyId of [...queue]) {
-      let delay = 300;
+      let delay = 5;
 
       while (true) {
         console.log(timestamp());
@@ -118,8 +118,8 @@
           break;
         } else if (parsed.error === 'You cannot perform this action any more right now') {
           delay *= 2;
-          console.log(`Error: rate limit hit; waiting ${delay} seconds before retrying`);
-          await sleep(delay * 1000);
+          console.log(`Error: rate limit hit; waiting ${delay} minutes before retrying`);
+          await sleep(delay * 60000)
         } else if (parsed.disliked === false) {
           console.log('Error: already disliked; reversing reversal');
         } else if (parsed.error === 'Permissions required for this action were not met') {
